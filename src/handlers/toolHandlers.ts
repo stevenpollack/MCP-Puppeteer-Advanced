@@ -11,7 +11,9 @@ import {
     hoverTool,
     evaluateTool,
     extractImages,
-    downloadImages
+    downloadImages,
+    analyzeElement,
+    browserStatus
 } from "../tools/index.js";
 
 export function setupToolHandlers(server: Server): void {
@@ -25,7 +27,12 @@ export function setupToolHandlers(server: Server): void {
         const name = request.params.name;
         const args = request.params.arguments ?? {};
 
-        // Ensure browser is initialized for all tool calls
+        // Special handling for browser status - don't require a browser for status check
+        if (name === "puppeteer_browser_status") {
+            return browserStatus(args);
+        }
+
+        // Ensure browser is initialized for all other tool calls
         await ensureBrowser(args);
 
         // Route to the appropriate tool handler
@@ -56,6 +63,9 @@ export function setupToolHandlers(server: Server): void {
 
             case "puppeteer_download_images":
                 return downloadImages(args);
+
+            case "puppeteer_analyze_element":
+                return analyzeElement(args);
 
             default:
                 return {

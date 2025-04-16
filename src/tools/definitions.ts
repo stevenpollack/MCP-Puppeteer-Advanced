@@ -115,4 +115,41 @@ export const TOOLS: Tool[] = [
             required: ["imageUrls"],
         },
     },
+    {
+        name: "puppeteer_analyze_element",
+        description: "Analyze a DOM element to extract its HTML structure, Markdown representation, and applied styles",
+        inputSchema: {
+            type: "object",
+            properties: {
+                selector: { type: "string", description: "CSS selector for the element to analyze" },
+                includeStyles: { type: "boolean", description: "Whether to include computed styles (default: true)" },
+                maxDepth: { type: "number", description: "Maximum depth for nested elements (default: 10)" },
+                includeSiblings: { type: "boolean", description: "Whether to include siblings of the selected element (default: false)" },
+            },
+            required: ["selector"],
+        },
+    },
+    {
+        name: "puppeteer_browser_status",
+        description: "Check browser status, list open tabs, and manage tab switching",
+        inputSchema: {
+            type: "object",
+            properties: {
+                action: {
+                    type: "string",
+                    description: "Action to perform: 'status' to check browser status, 'list_tabs' to list all open tabs, 'switch_tab' to switch to a different tab, 'new_tab' to open a new tab",
+                    enum: ["status", "list_tabs", "switch_tab", "new_tab"]
+                },
+                tabIndex: {
+                    type: "number",
+                    description: "Index of the tab to switch to (only required for 'switch_tab' action)"
+                },
+                url: {
+                    type: "string",
+                    description: "URL to open in the new tab (only for 'new_tab' action)"
+                }
+            },
+            required: ["action"],
+        },
+    },
 ]; 

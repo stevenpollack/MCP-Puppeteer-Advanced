@@ -52,13 +52,6 @@ A Model Context Protocol server that provides browser automation capabilities us
   - Execute JavaScript in the browser console
   - Input: `script` (string): JavaScript code to execute
 
-- **puppeteer_extract_images**
-
-  - Extract all images from the page (both `<img>` tags and CSS background images)
-  - Inputs:
-    - `selector` (string, optional): CSS selector to limit image extraction to a specific part of the page
-    - `includeBackgroundImages` (boolean, optional, default: true): Whether to include CSS background images
-
 - **puppeteer_download_images**
 
   - Download extracted images to a specified folder
@@ -107,10 +100,6 @@ The server provides access to two types of resources:
 - Screenshot capabilities
 - JavaScript execution
 - Basic web interaction (navigation, clicking, form filling)
-- Image extraction from both `<img>` tags and CSS backgrounds
-- Image downloading with automatic filename generation
-- DOM element analysis (HTML, Markdown, and styles)
-- Multi-tab browser management
 - Customizable Puppeteer launch options
 
 ## Configuration to use Puppeteer Server
@@ -186,29 +175,17 @@ You can customize Puppeteer's browser behavior in two ways:
    }
    ```
 
-## Project Structure
+## Build
 
-The project is organized into a modular structure:
+Docker build:
 
+```bash
+docker build -t mcp/puppeteer -f src/puppeteer/Dockerfile .
 ```
-src/
-├── handlers/          # Request handlers
-│   ├── resourceHandlers.ts
-│   └── toolHandlers.ts
-├── tools/             # Tool implementations
-│   ├── definitions.ts
-│   ├── downloadImages.ts
-│   ├── extractImages.ts
-│   ├── analyzeElement.ts
-│   ├── browserStatus.ts
-│   └── index.ts
-├── types/             # TypeScript interfaces
-│   └── index.ts
-├── utils/             # Utility functions
-│   ├── browser.ts
-│   └── helpers.ts
-└── index.ts           # Main entry point
-```
+
+## License
+
+This MCP server is licensed under the MIT License. This means you are free to use, modify, and distribute the software, subject to the terms and conditions of the MIT License. For more details, please see the LICENSE file in the project repository.
 
 ## Usage Examples
 
@@ -268,74 +245,3 @@ await callTool("puppeteer_analyze_element", {
   includeSiblings: true,
 });
 ```
-
-### Managing Browser Tabs
-
-```javascript
-// Check browser status
-await callTool("puppeteer_browser_status", {
-  action: "status",
-});
-
-// Open multiple tabs with different content
-await callTool("puppeteer_navigate", { url: "https://example.com" });
-await callTool("puppeteer_browser_status", {
-  action: "new_tab",
-  url: "https://example.org",
-});
-await callTool("puppeteer_browser_status", {
-  action: "new_tab",
-  url: "https://example.net",
-});
-
-// List all open tabs
-await callTool("puppeteer_browser_status", {
-  action: "list_tabs",
-});
-
-// Switch back to the first tab
-await callTool("puppeteer_browser_status", {
-  action: "switch_tab",
-  tabIndex: 0,
-});
-
-// Take actions in the first tab
-await callTool("puppeteer_screenshot", {
-  name: "first-tab-screenshot",
-});
-
-// Switch to the second tab
-await callTool("puppeteer_browser_status", {
-  action: "switch_tab",
-  tabIndex: 1,
-});
-
-// Take actions in the second tab
-await callTool("puppeteer_extract_images", {});
-```
-
-## Build
-
-Docker build:
-
-```bash
-docker build -t mcp/puppeteer -f Dockerfile .
-```
-
-## Development
-
-### Requirements
-
-- Node.js 16+
-- npm or yarn
-
-### Setup
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Build the project: `npm run build`
-4. For development with auto-reloading: `npm run dev`
-
-## License
-
-This MCP server is licensed under the MIT License. This means you are free to use, modify, and distribute the software, subject to the terms and conditions of the MIT License. For more details, please see the LICENSE file in the project repository.
