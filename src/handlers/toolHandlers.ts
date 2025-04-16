@@ -15,7 +15,8 @@ import {
     analyzeElement,
     browserStatus,
     analyzePageHierarchy,
-    viewportSwitcher
+    viewportSwitcher,
+    navigateHistory
 } from "../tools/index.js";
 
 export function setupToolHandlers(server: Server): void {
@@ -88,6 +89,9 @@ export function setupToolHandlers(server: Server): void {
 
             case "puppeteer_viewport_switcher":
                 return viewportSwitcher(args);
+
+            case "puppeteer_navigation_history":
+                return navigateHistory(args);
 
             default:
                 return {

@@ -282,4 +282,23 @@ export const TOOLS: Tool[] = [
             required: [],
         },
     },
+    {
+        name: "puppeteer_navigation_history",
+        description: "Navigate back or forward in browser history",
+        inputSchema: {
+            type: "object",
+            properties: {
+                action: {
+                    type: "string",
+                    description: "Navigation action to perform: 'back' to go back in history, 'forward' to go forward",
+                    enum: ["back", "forward"]
+                },
+                steps: {
+                    type: "number",
+                    description: "Number of steps to navigate (default: 1)"
+                }
+            },
+            required: ["action"],
+        },
+    },
 ]; 

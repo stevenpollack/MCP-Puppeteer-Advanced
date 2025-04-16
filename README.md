@@ -99,6 +99,7 @@ A Model Context Protocol server that provides browser automation capabilities us
     - `includeIds` (boolean, optional, default: true): Whether to include element IDs in the output
 
 - **puppeteer_viewport_switcher**
+
   - Switch the browser viewport to simulate different devices (mobile, tablet, desktop)
   - Inputs:
     - `preset` (string, optional): Viewport preset to use. Can be general ('mobile', 'tablet', 'desktop') or specific ('mobileSM', 'mobileMD', 'mobileLG', 'tabletSM', 'tabletMD', 'tabletLG', 'desktopSM', 'desktopMD', 'desktopLG', 'desktopXL')
@@ -108,6 +109,12 @@ A Model Context Protocol server that provides browser automation capabilities us
     - `isMobile` (boolean, optional): Whether the meta viewport tag should be used for mobile simulation
     - `hasTouch` (boolean, optional): Whether the device has touch capabilities
     - `isLandscape` (boolean, optional): Whether the device is in landscape orientation
+
+- **puppeteer_navigation_history**
+  - Navigate back or forward in browser history
+  - Inputs:
+    - `action` (string, required): Navigation action to perform - either 'back' to go back in history or 'forward' to go forward
+    - `steps` (number, optional, default: 1): Number of steps to navigate
 
 ### Resources
 
@@ -224,6 +231,7 @@ src/
 │   ├── analyzeElement.ts
 │   ├── browserStatus.ts
 │   ├── colorPalette.ts
+│   ├── navigation.ts
 │   ├── pageHierarchy.ts
 │   ├── sitemap.ts
 │   ├── viewport.ts
@@ -390,6 +398,30 @@ await callTool("puppeteer_viewport_switcher", {
   deviceScaleFactor: 2,
   isMobile: false,
 });
+```
+
+### Using History Navigation
+
+```javascript
+// Navigate to a sequence of pages
+await callTool("puppeteer_navigate", { url: "https://example.com" });
+await callTool("puppeteer_navigate", { url: "https://example.com/page1" });
+await callTool("puppeteer_navigate", { url: "https://example.com/page2" });
+
+// Go back one page in history
+await callTool("puppeteer_navigation_history", { action: "back" });
+// Current page is now example.com/page1
+
+// Go back to the first page
+await callTool("puppeteer_navigation_history", { action: "back" });
+// Current page is now example.com
+
+// Go forward two steps
+await callTool("puppeteer_navigation_history", {
+  action: "forward",
+  steps: 2,
+});
+// Current page is now example.com/page2
 ```
 
 ## Build

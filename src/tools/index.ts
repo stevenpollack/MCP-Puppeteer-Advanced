@@ -6,6 +6,7 @@ import { analyzeElement } from "./analyzeElement.js";
 import { browserStatus } from "./browserStatus.js";
 import { analyzePageHierarchy } from "./pageHierarchy.js";
 import { viewportSwitcher, DEFAULT_VIEWPORT } from "./viewport.js";
+import { navigateHistory } from "./navigation.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 
 // Export all tool implementations
@@ -15,6 +16,7 @@ export { analyzeElement } from "./analyzeElement.js";
 export { browserStatus } from "./browserStatus.js";
 export { analyzePageHierarchy } from "./pageHierarchy.js";
 export { viewportSwitcher } from "./viewport.js";
+export { navigateHistory } from "./navigation.js";
 
 // Handler for the navigate tool
 export async function navigateTool(args: any, server: Server): Promise<CallToolResult> {
