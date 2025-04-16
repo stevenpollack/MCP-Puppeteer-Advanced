@@ -13,7 +13,9 @@ import {
     extractImages,
     downloadImages,
     analyzeElement,
-    browserStatus
+    browserStatus,
+    analyzePageHierarchy,
+    viewportSwitcher
 } from "../tools/index.js";
 
 export function setupToolHandlers(server: Server): void {
@@ -33,7 +35,21 @@ export function setupToolHandlers(server: Server): void {
         }
 
         // Ensure browser is initialized for all other tool calls
-        await ensureBrowser(args);
+        const page = await ensureBrowser(args);
+
+        // Set default desktop viewport size when browser is initialized
+        // Only do this when the browser is first initialized (not on every call)
+        if (name === "puppeteer_navigate") {
+            // Default to desktop viewport when navigating to a page
+            await page.setViewport({
+                width: 1280,
+                height: 800,
+                deviceScaleFactor: 1,
+                isMobile: false,
+                hasTouch: false,
+                isLandscape: false
+            });
+        }
 
         // Route to the appropriate tool handler
         switch (name) {
@@ -66,6 +82,12 @@ export function setupToolHandlers(server: Server): void {
 
             case "puppeteer_analyze_element":
                 return analyzeElement(args);
+
+            case "puppeteer_analyze_page_hierarchy":
+                return analyzePageHierarchy(args);
+
+            case "puppeteer_viewport_switcher":
+                return viewportSwitcher(args);
 
             default:
                 return {

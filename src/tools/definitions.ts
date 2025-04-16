@@ -152,4 +152,134 @@ export const TOOLS: Tool[] = [
             required: ["action"],
         },
     },
+    {
+        name: "puppeteer_extract_color_palette",
+        description: "Extract the color palette from the current page, identifying primary, secondary, and accent colors",
+        inputSchema: {
+            type: "object",
+            properties: {
+                selector: {
+                    type: "string",
+                    description: "Optional CSS selector to limit color extraction to a specific part of the page"
+                },
+                maxColors: {
+                    type: "number",
+                    description: "Maximum number of colors to extract (default: 20)"
+                },
+                includeBackgroundColors: {
+                    type: "boolean",
+                    description: "Whether to include background colors (default: true)"
+                },
+                includeTextColors: {
+                    type: "boolean",
+                    description: "Whether to include text colors (default: true)"
+                },
+                includeBorderColors: {
+                    type: "boolean",
+                    description: "Whether to include border colors (default: true)"
+                }
+            },
+            required: [],
+        },
+    },
+    {
+        name: "puppeteer_generate_sitemap",
+        description: "Generate a sitemap of the website by crawling links from the current page",
+        inputSchema: {
+            type: "object",
+            properties: {
+                maxDepth: {
+                    type: "number",
+                    description: "Maximum depth to crawl (default: 2)"
+                },
+                maxPages: {
+                    type: "number",
+                    description: "Maximum number of pages to include in the sitemap (default: 100)"
+                },
+                includeExternal: {
+                    type: "boolean",
+                    description: "Whether to include external links (default: false)"
+                },
+                excludePatterns: {
+                    type: "array",
+                    description: "Array of regex patterns to exclude from crawling",
+                    items: { type: "string" }
+                },
+                outputFormat: {
+                    type: "string",
+                    description: "Output format: 'text' or 'tree' (default: 'tree')",
+                    enum: ["text", "tree"]
+                }
+            },
+            required: [],
+        },
+    },
+    {
+        name: "puppeteer_analyze_page_hierarchy",
+        description: "Analyze the hierarchy of a page and determine parent-child relationships between elements",
+        inputSchema: {
+            type: "object",
+            properties: {
+                selector: {
+                    type: "string",
+                    description: "CSS selector for the root element to analyze (default: 'body')"
+                },
+                maxDepth: {
+                    type: "number",
+                    description: "Maximum depth of the hierarchy to analyze (default: 5)"
+                },
+                includeTextNodes: {
+                    type: "boolean",
+                    description: "Whether to include text nodes in the hierarchy (default: false)"
+                },
+                includeClasses: {
+                    type: "boolean",
+                    description: "Whether to include CSS classes in the output (default: true)"
+                },
+                includeIds: {
+                    type: "boolean",
+                    description: "Whether to include element IDs in the output (default: true)"
+                }
+            },
+            required: [],
+        },
+    },
+    {
+        name: "puppeteer_viewport_switcher",
+        description: "Switch the browser viewport to simulate different devices (mobile, tablet, desktop)",
+        inputSchema: {
+            type: "object",
+            properties: {
+                preset: {
+                    type: "string",
+                    description: "Viewport preset to use. Can be general ('mobile', 'tablet', 'desktop') or specific ('mobileSM', 'mobileMD', 'mobileLG', 'tabletSM', 'tabletMD', 'tabletLG', 'desktopSM', 'desktopMD', 'desktopLG', 'desktopXL')"
+                },
+                width: {
+                    type: "number",
+                    description: "Custom viewport width in pixels (ignored if preset is specified)"
+                },
+                height: {
+                    type: "number",
+                    description: "Custom viewport height in pixels (ignored if preset is specified)"
+                },
+                deviceScaleFactor: {
+                    type: "number",
+                    description: "Device scale factor (pixel ratio) - typically 1 for desktop and 2 for retina/mobile"
+                },
+                isMobile: {
+                    type: "boolean",
+                    description: "Whether the meta viewport tag should be used for mobile simulation"
+                },
+                hasTouch: {
+                    type: "boolean",
+                    description: "Whether the device has touch capabilities"
+                },
+                isLandscape: {
+                    type: "boolean",
+                    description: "Whether the device is in landscape orientation"
+                }
+            },
+            required: [],
+        },
+    },
 ]; 

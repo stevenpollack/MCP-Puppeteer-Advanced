@@ -77,6 +77,7 @@ A Model Context Protocol server that provides browser automation capabilities us
     - `includeSiblings` (boolean, optional, default: false): Whether to include siblings of the selected element
 
 - **puppeteer_browser_status**
+
   - Check browser status, list open tabs, and manage tab switching
   - Inputs:
     - `action` (string, required): Action to perform
@@ -86,6 +87,27 @@ A Model Context Protocol server that provides browser automation capabilities us
       - `new_tab`: Open a new browser tab
     - `tabIndex` (number, required for `switch_tab`): Index of the tab to switch to
     - `url` (string, optional for `new_tab`): URL to open in the new tab
+
+- **puppeteer_analyze_page_hierarchy**
+
+  - Analyze the DOM hierarchy of a page and determine parent-child relationships between elements
+  - Inputs:
+    - `selector` (string, optional, default: 'body'): CSS selector for the root element to analyze
+    - `maxDepth` (number, optional, default: 10): Maximum depth of the hierarchy to analyze
+    - `includeTextNodes` (boolean, optional, default: true): Whether to include text nodes in the hierarchy
+    - `includeClasses` (boolean, optional, default: true): Whether to include CSS classes in the output
+    - `includeIds` (boolean, optional, default: true): Whether to include element IDs in the output
+
+- **puppeteer_viewport_switcher**
+  - Switch the browser viewport to simulate different devices (mobile, tablet, desktop)
+  - Inputs:
+    - `preset` (string, optional): Viewport preset to use. Can be general ('mobile', 'tablet', 'desktop') or specific ('mobileSM', 'mobileMD', 'mobileLG', 'tabletSM', 'tabletMD', 'tabletLG', 'desktopSM', 'desktopMD', 'desktopLG', 'desktopXL')
+    - `width` (number, optional): Custom viewport width in pixels (ignored if preset is specified)
+    - `height` (number, optional): Custom viewport height in pixels (ignored if preset is specified)
+    - `deviceScaleFactor` (number, optional): Device scale factor (pixel ratio) - typically 1 for desktop and 2 for retina/mobile
+    - `isMobile` (boolean, optional): Whether the meta viewport tag should be used for mobile simulation
+    - `hasTouch` (boolean, optional): Whether the device has touch capabilities
+    - `isLandscape` (boolean, optional): Whether the device is in landscape orientation
 
 ### Resources
 
@@ -201,6 +223,10 @@ src/
 │   ├── extractImages.ts
 │   ├── analyzeElement.ts
 │   ├── browserStatus.ts
+│   ├── colorPalette.ts
+│   ├── pageHierarchy.ts
+│   ├── sitemap.ts
+│   ├── viewport.ts
 │   └── index.ts
 ├── types/             # TypeScript interfaces
 │   └── index.ts
@@ -312,6 +338,58 @@ await callTool("puppeteer_browser_status", {
 
 // Take actions in the second tab
 await callTool("puppeteer_extract_images", {});
+```
+
+### Analyzing Page Hierarchy
+
+```javascript
+// Navigate to a page
+await callTool("puppeteer_navigate", { url: "https://example.com" });
+
+// Get the full page hierarchy
+await callTool("puppeteer_analyze_page_hierarchy", {});
+
+// Analyze a specific section with custom options
+await callTool("puppeteer_analyze_page_hierarchy", {
+  selector: "#main-content",
+  maxDepth: 5,
+  includeTextNodes: true,
+  includeClasses: true,
+  includeIds: true,
+});
+```
+
+### Using Viewport Switcher for Responsive Testing
+
+```javascript
+// Navigate to a page
+await callTool("puppeteer_navigate", { url: "https://example.com" });
+
+// Switch to mobile view
+await callTool("puppeteer_viewport_switcher", { preset: "mobile" });
+
+// Take a screenshot in mobile view
+await callTool("puppeteer_screenshot", { name: "mobile-view" });
+
+// Switch to tablet view
+await callTool("puppeteer_viewport_switcher", { preset: "tablet" });
+
+// Take a screenshot in tablet view
+await callTool("puppeteer_screenshot", { name: "tablet-view" });
+
+// Switch to desktop view
+await callTool("puppeteer_viewport_switcher", { preset: "desktop" });
+
+// Take a screenshot in desktop view
+await callTool("puppeteer_screenshot", { name: "desktop-view" });
+
+// Use a custom viewport size
+await callTool("puppeteer_viewport_switcher", {
+  width: 1440,
+  height: 900,
+  deviceScaleFactor: 2,
+  isMobile: false,
+});
 ```
 
 ## Build

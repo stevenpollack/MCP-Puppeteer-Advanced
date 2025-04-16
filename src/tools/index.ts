@@ -4,6 +4,8 @@ import { extractImages } from "./extractImages.js";
 import { downloadImages } from "./downloadImages.js";
 import { analyzeElement } from "./analyzeElement.js";
 import { browserStatus } from "./browserStatus.js";
+import { analyzePageHierarchy } from "./pageHierarchy.js";
+import { viewportSwitcher, DEFAULT_VIEWPORT } from "./viewport.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 
 // Export all tool implementations
@@ -11,6 +13,8 @@ export { extractImages } from "./extractImages.js";
 export { downloadImages } from "./downloadImages.js";
 export { analyzeElement } from "./analyzeElement.js";
 export { browserStatus } from "./browserStatus.js";
+export { analyzePageHierarchy } from "./pageHierarchy.js";
+export { viewportSwitcher } from "./viewport.js";
 
 // Handler for the navigate tool
 export async function navigateTool(args: any, server: Server): Promise<CallToolResult> {
