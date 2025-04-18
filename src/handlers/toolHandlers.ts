@@ -16,8 +16,9 @@ import {
     browserStatus,
     analyzePageHierarchy,
     viewportSwitcher,
-    navigateHistory
+    navigateHistory,
 } from "../tools/index.js";
+import type { NavigationHistoryOptions } from "../tools/navigation.js";
 
 export function setupToolHandlers(server: Server): void {
     // Handler for listing available tools
@@ -90,8 +91,28 @@ export function setupToolHandlers(server: Server): void {
             case "puppeteer_viewport_switcher":
                 return viewportSwitcher(args);
 
-            case "puppeteer_navigation_history":
-                return navigateHistory(args);
+            case "puppeteer_navigation_history": {
+                if (typeof args.action !== 'string' || !['back', 'forward'].includes(args.action)) {
+                    return {
+                        content: [{
+                            type: "text",
+                            text: "Invalid navigation action. Must be either 'back' or 'forward'.",
+                        }],
+                        isError: true,
+                    };
+                }
+
+                const navigationOptions: NavigationHistoryOptions = {
+                    action: args.action as 'back' | 'forward'
+                };
+
+                if (typeof args.waitUntil === 'string' &&
+                    ['load', 'domcontentloaded', 'networkidle0', 'networkidle2'].includes(args.waitUntil)) {
+                    navigationOptions.waitUntil = args.waitUntil as 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2';
+                }
+
+                return navigateHistory(navigationOptions);
+            }
 
             default:
                 return {

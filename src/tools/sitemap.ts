@@ -1,19 +1,24 @@
-import { CallToolResult, TextContent } from "@modelcontextprotocol/sdk/types.js";
+import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { state } from "../utils/browser.js";
+
+interface SitemapOptions {
+    maxDepth?: number;
+    maxPages?: number;
+    includeExternal?: boolean;
+    excludePatterns?: string[];
+    outputFormat?: 'text' | 'tree';
+}
 
 interface PageNode {
     url: string;
     title: string;
     children: PageNode[];
-    level: number;
-    external: boolean;
-    parent?: PageNode;
+    depth: number;
 }
 
-export async function generateSitemap(args: any): Promise<CallToolResult> {
+export async function generateSitemap(args: SitemapOptions): Promise<CallToolResult> {
     try {
         const page = state.page;
-
         if (!page) {
             return {
                 content: [{
@@ -24,221 +29,118 @@ export async function generateSitemap(args: any): Promise<CallToolResult> {
             };
         }
 
-        const maxDepth = args.maxDepth || 2;
-        const maxPages = args.maxPages || 100;
-        const includeExternal = args.includeExternal || false;
-        const excludePatterns = args.excludePatterns || [];
-        const outputFormat = args.outputFormat || 'tree';
+        const maxDepth = args.maxDepth ?? 2;
+        const maxPages = args.maxPages ?? 100;
+        const includeExternal = args.includeExternal ?? false;
+        const excludePatterns = args.excludePatterns ?? [];
+        const outputFormat = args.outputFormat ?? 'tree';
 
-        // Get the base URL for determining relative vs external links
-        const baseUrl = await page.evaluate(() => {
-            return window.location.origin;
-        });
-
-        // Create regex patterns for exclusion
-        const excludeRegexes = excludePatterns.map((pattern: string) => new RegExp(pattern));
-
-        // Storage for visited URLs to avoid duplicates
-        const visitedUrls = new Set<string>();
-
-        // Root node of our sitemap
-        const rootNode: PageNode = {
-            url: await page.url(),
+        const baseUrl = new URL(page.url());
+        const visited = new Set<string>();
+        const sitemap: PageNode = {
+            url: baseUrl.href,
             title: await page.title(),
             children: [],
-            level: 0,
-            external: false
+            depth: 0
         };
 
-        visitedUrls.add(rootNode.url);
-
-        // Function to normalize URLs
-        const normalizeUrl = (url: string): string => {
-            // Remove hash
-            url = url.split('#')[0];
-
-            // Remove trailing slash if present
-            if (url.endsWith('/')) {
-                url = url.slice(0, -1);
-            }
-
-            return url;
-        };
-
-        // Check if URL should be excluded
-        const shouldExclude = (url: string): boolean => {
-            // Skip mailto, tel, javascript, etc.
-            if (url.startsWith('mailto:') ||
-                url.startsWith('tel:') ||
-                url.startsWith('javascript:') ||
-                url.startsWith('data:') ||
-                url === '#') {
-                return true;
-            }
-
-            // Check against exclude patterns
-            for (const regex of excludeRegexes) {
-                if (regex.test(url)) {
-                    return true;
-                }
-            }
-
-            return false;
-        };
-
-        // Recursive function to crawl pages
-        const crawlPage = async (node: PageNode, depth: number): Promise<void> => {
-            if (depth >= maxDepth || visitedUrls.size >= maxPages) {
+        async function crawl(node: PageNode): Promise<void> {
+            if (node.depth >= maxDepth || visited.size >= maxPages) {
                 return;
             }
 
-            // Navigate to the page
+            visited.add(node.url);
+
             try {
-                await page.goto(node.url, { waitUntil: 'domcontentloaded' });
-                node.title = await page.title();
+                if (!page) return;
 
-                // Extract all links from the page
+                await page.goto(node.url, { waitUntil: 'networkidle0' });
+
                 const links = await page.evaluate((baseUrl, includeExternal) => {
-                    const allLinks = Array.from(document.querySelectorAll('a[href]'));
-                    return allLinks.map(link => {
-                        const href = link.getAttribute('href') || '';
-                        let fullUrl;
+                    return Array.from(document.querySelectorAll('a'))
+                        .map(a => {
+                            try {
+                                const href = new URL((a as HTMLAnchorElement).href, baseUrl);
+                                return {
+                                    url: href.href,
+                                    title: a.textContent?.trim() || href.pathname,
+                                    isExternal: href.origin !== new URL(baseUrl).origin
+                                };
+                            } catch {
+                                return null;
+                            }
+                        })
+                        .filter((link): link is { url: string; title: string; isExternal: boolean } =>
+                            link !== null &&
+                            (!link.isExternal || includeExternal) &&
+                            !link.url.startsWith('mailto:') &&
+                            !link.url.startsWith('tel:') &&
+                            !link.url.includes('#')
+                        );
+                }, baseUrl.href, includeExternal) || [];
 
-                        // Handle relative URLs
-                        if (href.startsWith('/')) {
-                            fullUrl = baseUrl + href;
-                        } else if (!href.includes('://')) {
-                            // Relative URL without leading slash
-                            fullUrl = new URL(href, window.location.href).href;
-                        } else {
-                            fullUrl = href;
-                        }
-
-                        const isExternal = !fullUrl.startsWith(baseUrl);
-
-                        // Skip external links if not included
-                        if (isExternal && !includeExternal) {
-                            return null;
-                        }
-
-                        return {
-                            url: fullUrl,
-                            text: link.textContent?.trim() || '',
-                            isExternal
-                        };
-                    }).filter(Boolean);
-                }, baseUrl, includeExternal);
-
-                // Process each link
                 for (const link of links) {
-                    if (!link) continue;
-
-                    const normalizedUrl = normalizeUrl(link.url);
-
-                    if (shouldExclude(normalizedUrl) || visitedUrls.has(normalizedUrl)) {
+                    // Check exclude patterns
+                    if (excludePatterns.some(pattern =>
+                        new RegExp(pattern).test(link.url)
+                    )) {
                         continue;
                     }
 
-                    visitedUrls.add(normalizedUrl);
-
-                    const childNode: PageNode = {
-                        url: normalizedUrl,
-                        title: link.text || normalizedUrl,
-                        children: [],
-                        level: depth + 1,
-                        external: link.isExternal,
-                        parent: node
-                    };
-
-                    node.children.push(childNode);
-
-                    // Only continue crawling non-external links
-                    if (!childNode.external) {
-                        await crawlPage(childNode, depth + 1);
-                    }
-
-                    // Stop if we've reached the max pages
-                    if (visitedUrls.size >= maxPages) {
-                        break;
+                    if (!visited.has(link.url)) {
+                        const childNode: PageNode = {
+                            url: link.url,
+                            title: link.title,
+                            children: [],
+                            depth: node.depth + 1
+                        };
+                        node.children.push(childNode);
+                        await crawl(childNode);
                     }
                 }
-
             } catch (error) {
                 console.error(`Error crawling ${node.url}: ${error}`);
-                // Continue with other links even if one fails
-            }
-        };
-
-        // Start crawling from the root
-        await crawlPage(rootNode, 0);
-
-        // Generate text output in the requested format
-        let output: string;
-
-        if (outputFormat === 'tree') {
-            output = `# Site Map: ${rootNode.title}\n\n`;
-
-            // Function to render node as tree
-            const renderTree = (node: PageNode, prefix = ''): string => {
-                let result = `${prefix}${prefix ? '└─ ' : ''}[${node.title}](${node.url})${node.external ? ' (External)' : ''}\n`;
-
-                const childPrefix = prefix + (prefix ? '   ' : '');
-
-                for (let i = 0; i < node.children.length; i++) {
-                    result += renderTree(node.children[i], childPrefix);
-                }
-
-                return result;
-            };
-
-            output += renderTree(rootNode);
-
-        } else {
-            // Simple text list with proper hierarchy
-            output = `# Site Map: ${rootNode.title}\n\n`;
-
-            // Flattened list of all nodes for easier processing
-            const flatList: PageNode[] = [];
-
-            // Function to flatten the tree
-            const flattenTree = (node: PageNode): void => {
-                flatList.push(node);
-                for (const child of node.children) {
-                    flattenTree(child);
-                }
-            };
-
-            flattenTree(rootNode);
-
-            // Sort by URL for a more organized list
-            flatList.sort((a, b) => a.url.localeCompare(b.url));
-
-            // Generate a list with proper indentation
-            for (const node of flatList) {
-                const indent = '  '.repeat(node.level);
-                output += `${indent}- [${node.title}](${node.url})${node.external ? ' (External)' : ''}\n`;
             }
         }
 
-        // Add statistics
-        output += `\n## Statistics\n`;
-        output += `- Total pages: ${visitedUrls.size}\n`;
-        output += `- Internal pages: ${[...visitedUrls].filter(url => url.startsWith(baseUrl)).length}\n`;
-        output += `- External links: ${[...visitedUrls].filter(url => !url.startsWith(baseUrl)).length}\n`;
-        output += `- Max depth reached: ${maxDepth}\n`;
+        await crawl(sitemap);
+
+        // Format output
+        function formatTree(node: PageNode, prefix = ''): string {
+            let result = `${prefix}${node.title} (${node.url})\n`;
+            for (let i = 0; i < node.children.length; i++) {
+                const isLast = i === node.children.length - 1;
+                const childPrefix = prefix + (isLast ? '└── ' : '├── ');
+                const childContentPrefix = prefix + (isLast ? '    ' : '│   ');
+                result += formatTree(node.children[i], childPrefix);
+            }
+            return result;
+        }
+
+        function formatText(node: PageNode): string {
+            let result = '';
+            function traverse(n: PageNode, depth: number) {
+                result += `${'  '.repeat(depth)}${n.title} (${n.url})\n`;
+                n.children.forEach(child => traverse(child, depth + 1));
+            }
+            traverse(node, 0);
+            return result;
+        }
+
+        const output = outputFormat === 'tree' ? formatTree(sitemap) : formatText(sitemap);
 
         return {
             content: [{
                 type: "text",
-                text: output,
-            } as TextContent],
+                text: `Sitemap (${visited.size} pages crawled):\n\n${output}`,
+            }],
             isError: false,
         };
     } catch (error) {
         return {
             content: [{
                 type: "text",
-                text: `Error generating sitemap: ${(error as Error).message}`,
+                text: `Failed to generate sitemap: ${(error as Error).message}`,
             }],
             isError: true,
         };

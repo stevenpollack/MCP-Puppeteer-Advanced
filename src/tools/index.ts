@@ -43,13 +43,23 @@ export async function screenshotTool(args: any, server: Server): Promise<CallToo
         };
     }
 
+    // Store current viewport settings
+    const currentViewport = page.viewport();
+
     const width = args.width ?? 800;
     const height = args.height ?? 600;
-    await page.setViewport({ width, height });
+    await page.setViewport({
+        ...currentViewport,
+        width,
+        height
+    });
 
     const screenshot = await (args.selector ?
         (await page.$(args.selector))?.screenshot({ encoding: "base64" }) :
         page.screenshot({ encoding: "base64", fullPage: false }));
+
+    // Restore previous viewport settings
+    await page.setViewport(currentViewport);
 
     if (!screenshot) {
         return {
@@ -84,15 +94,65 @@ export async function screenshotTool(args: any, server: Server): Promise<CallToo
 
 // Handler for the click tool
 export async function clickTool(args: any): Promise<CallToolResult> {
-    try {
-        await state.page?.click(args.selector);
+    const page = state.page;
+    if (!page) {
         return {
             content: [{
                 type: "text",
-                text: `Clicked: ${args.selector}`,
+                text: "Browser page not initialized",
             }],
-            isError: false,
+            isError: true,
         };
+    }
+
+    try {
+        // Wait for the element to be present in DOM
+        await page.waitForSelector(args.selector, { timeout: 5000 });
+
+        // Try native click first
+        try {
+            await page.evaluate((selector) => {
+                const element = document.querySelector(selector);
+                if (element) {
+                    // Scroll element into view
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, args.selector);
+
+            // Wait a moment for smooth scroll to complete
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            await page.click(args.selector);
+            return {
+                content: [{
+                    type: "text",
+                    text: `Clicked: ${args.selector}`,
+                }],
+                isError: false,
+            };
+        } catch (clickError) {
+            // If native click fails, try JavaScript click
+            const clicked = await page.evaluate((selector) => {
+                const element = document.querySelector(selector);
+                if (element) {
+                    element.click();
+                    return true;
+                }
+                return false;
+            }, args.selector);
+
+            if (clicked) {
+                return {
+                    content: [{
+                        type: "text",
+                        text: `Clicked (using JavaScript): ${args.selector}`,
+                    }],
+                    isError: false,
+                };
+            }
+
+            throw new Error(`Element found but not clickable: ${(clickError as Error).message}`);
+        }
     } catch (error) {
         return {
             content: [{
