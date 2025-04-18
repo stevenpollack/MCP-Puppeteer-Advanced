@@ -72,8 +72,8 @@ A Model Context Protocol server that provides browser automation capabilities us
   - Analyze a DOM element to extract its HTML structure, Markdown representation, and applied styles
   - Inputs:
     - `selector` (string, required): CSS selector for the element to analyze
-    - `includeStyles` (boolean, optional, default: true): Whether to include computed styles
-    - `maxDepth` (number, optional, default: 10): Maximum depth for nested elements
+    - `includeStyles` (boolean, optional, default: false): Whether to include computed styles
+    - `maxDepth` (number, optional, default: 3): Maximum depth for nested elements
     - `includeSiblings` (boolean, optional, default: false): Whether to include siblings of the selected element
 
 - **puppeteer_browser_status**

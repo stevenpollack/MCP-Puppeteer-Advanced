@@ -122,8 +122,14 @@ export const TOOLS: Tool[] = [
             type: "object",
             properties: {
                 selector: { type: "string", description: "CSS selector for the element to analyze" },
-                includeStyles: { type: "boolean", description: "Whether to include computed styles (default: true)" },
-                maxDepth: { type: "number", description: "Maximum depth for nested elements (default: 10)" },
+                includeStyles: {
+                    type: "boolean",
+                    description: "Whether to include computed styles (default: false)"
+                },
+                maxDepth: {
+                    type: "number",
+                    description: "Maximum depth for nested elements (default: 3)"
+                },
                 includeSiblings: { type: "boolean", description: "Whether to include siblings of the selected element (default: false)" },
             },
             required: ["selector"],

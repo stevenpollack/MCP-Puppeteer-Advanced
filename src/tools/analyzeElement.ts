@@ -28,8 +28,8 @@ export async function analyzeElement(args: any): Promise<CallToolResult> {
         }
 
         const selector = args.selector;
-        const includeStyles = args.includeStyles !== false;
-        const maxDepth = args.maxDepth || 10;
+        const includeStyles = args.includeStyles ?? false;
+        const maxDepth = args.maxDepth ?? 3;
         const includeSiblings = args.includeSiblings || false;
 
         // Check if the element exists
