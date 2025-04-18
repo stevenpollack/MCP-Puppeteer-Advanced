@@ -1,14 +1,14 @@
 {
-  "name": "@modelcontextprotocol/server-puppeteer",
+  "name": "puppeteer-advance",
   "version": "0.6.2",
-  "description": "MCP server for browser automation using Puppeteer",
+  "description": "Advanced Puppeteer automation server with enhanced functionality",
   "license": "MIT",
   "author": "Anthropic, PBC (https://anthropic.com)",
   "homepage": "https://modelcontextprotocol.io",
   "bugs": "https://github.com/modelcontextprotocol/servers/issues",
   "type": "module",
   "bin": {
-    "mcp-server-puppeteer": "dist/index.js"
+    "puppeteer-advance": "dist/index.js"
   },
   "files": [
     "dist"
