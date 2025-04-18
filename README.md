@@ -95,8 +95,8 @@ A Model Context Protocol server that provides browser automation capabilities us
     - `selector` (string, optional, default: 'body'): CSS selector for the root element to analyze
     - `maxDepth` (number, optional, default: 10): Maximum depth of the hierarchy to analyze
     - `includeTextNodes` (boolean, optional, default: true): Whether to include text nodes in the hierarchy
-    - `includeClasses` (boolean, optional, default: true): Whether to include CSS classes in the output
-    - `includeIds` (boolean, optional, default: true): Whether to include element IDs in the output
+    - `includeClasses` (boolean, optional, default: false): Whether to include CSS classes in the output
+    - `includeIds` (boolean, optional, default: false): Whether to include element IDs in the output
 
 - **puppeteer_viewport_switcher**
 

@@ -38,10 +38,10 @@ export async function analyzePageHierarchy(
 
     const {
         selector = "body",
-        maxDepth = 10,
-        includeTextNodes = true,
-        includeClasses = true,
-        includeIds = true,
+        maxDepth = 5,
+        includeTextNodes = false,
+        includeClasses = false,
+        includeIds = false,
     } = options;
 
     try {
