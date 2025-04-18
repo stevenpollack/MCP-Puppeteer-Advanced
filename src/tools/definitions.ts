@@ -234,11 +234,11 @@ export const TOOLS: Tool[] = [
                 },
                 includeClasses: {
                     type: "boolean",
-                    description: "Whether to include CSS classes in the output (default: true)"
+                    description: "Whether to include CSS classes in the output (default: false)"
                 },
                 includeIds: {
                     type: "boolean",
-                    description: "Whether to include element IDs in the output (default: true)"
+                    description: "Whether to include element IDs in the output (default: false)"
                 }
             },
             required: [],
