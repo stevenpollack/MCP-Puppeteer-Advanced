@@ -32,7 +32,21 @@ export async function navigateTool(args: any, server: Server): Promise<CallToolR
 
 // Handler for the screenshot tool
 export async function screenshotTool(args: any, server: Server): Promise<CallToolResult> {
-    const page = state.page;
+    let page = state.page;
+    if (typeof args.tabIndex === 'number' && state.browser) {
+        const pages = await state.browser.pages();
+        if (args.tabIndex >= 0 && args.tabIndex < pages.length) {
+            page = pages[args.tabIndex];
+        } else {
+            return {
+                content: [{
+                    type: "text",
+                    text: `Invalid tabIndex: ${args.tabIndex}. Available range: 0-${pages.length - 1}`,
+                }],
+                isError: true,
+            };
+        }
+    }
     if (!page) {
         return {
             content: [{
@@ -80,7 +94,7 @@ export async function screenshotTool(args: any, server: Server): Promise<CallToo
         content: [
             {
                 type: "text",
-                text: `Screenshot '${args.name}' taken at ${width}x${height}`,
+                text: `Screenshot '${args.name}' taken at ${width}x${height} on tab ${typeof args.tabIndex === 'number' ? args.tabIndex : 'active'}`,
             } as TextContent,
             {
                 type: "image",
