@@ -1,6 +1,6 @@
 {
-  "name": "mcp-puppeteer-advanced",
-  "version": "0.6.2",
+  "name": "mcp-pptr",
+  "version": "0.0.1",
   "description": "Advanced Puppeteer automation server with enhanced functionality",
   "license": "MIT",
   "author": "Anthropic, PBC (https://anthropic.com)",
@@ -8,7 +8,7 @@
   "bugs": "https://github.com/modelcontextprotocol/servers/issues",
   "type": "module",
   "bin": {
-    "mcp-puppeteer-advanced": "dist/index.js"
+    "mcp-pptr": "dist/index.js"
   },
   "files": [
     "dist"
